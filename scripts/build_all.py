@@ -66,33 +66,21 @@ def update_android_versions(major, minor, patch, revision, version_type, source_
 
     release_code = str(int('%d%02d%d' % (major, minor, patch)))
 
+    def _copy_file_and_replaced_texts(in_file_path, out_file_path, **kw):
+        with open(in_file_path) as in_file:
+            with open(out_file_path, 'w') as out_file:
+                content = in_file.read()
+                out_file.write(content.format(**kw))
+
     # Write correct version in <string name="version"></string>
-    in_file = os.path.join(android_target_dir, 'res/values/.strings.xml.template')
-    out_file = os.path.join(android_target_dir, 'res/values/strings.xml')
-    try:
-        shutil.copy(in_file, out_file)
-    except IOError:
-        pass
-    release_version_command = r'sed -i -e "s/\(<string name=\"version\">\).*\(<\/string>\)/\1{release_version}\2/g" {edit_file}'.format(
-        release_version=release_version,
-        edit_file=out_file
-    )
-    run_command(release_version_command)
+    in_file_path = os.path.join(android_target_dir, 'res/values/.strings.xml.template')
+    out_file_path = os.path.join(android_target_dir, 'res/values/strings.xml')
+    _copy_file_and_replaced_texts(in_file_path, out_file_path, k_version_desc=release_version)
 
     # Write correct release code in android:versionCode=""
-    in_file = os.path.join(android_target_dir, '.AndroidManifest.xml.template')
-    out_file = os.path.join(android_target_dir, 'AndroidManifest.xml')
-    try:
-        shutil.copy(in_file, out_file)
-    except IOError:
-        pass
-    release_code_pattern = r'sed -i -e "s/\(android:versionCode=\"\)[0-9]*/\1{release_code}/g" {edit_file}'.format(
-        release_code=release_code,
-        edit_file=out_file
-    )
-
-    run_command(release_code_pattern)
-
+    in_file_path = os.path.join(android_target_dir, '.AndroidManifest.xml.template')
+    out_file_path = os.path.join(android_target_dir, 'AndroidManifest.xml')
+    _copy_file_and_replaced_texts(in_file_path, out_file_path, k_android_ver_code=release_code)
 
 def update_cmake_versions(major, minor, patch, revision, version_type, source_root, cmake_script, **kw):
     run_command(
@@ -108,14 +96,14 @@ def update_cmake_versions(major, minor, patch, revision, version_type, source_ro
             ' -DCMAKE_VERBOSE_MAKEFILE=TRUE'
             ' -P {cmake_script}'
         ).format(
-            source_root=source_root,
+            source_root=source_root.replace('\\', '/'),
             major=major,
             minor=minor,
             patch=patch,
             revision=revision,
             version_type=version_type,
             testlib=os.environ.get('TEST_LIBRARY', '/usr/lib/x86_64-linux-gnu'),
-            cmake_script=cmake_script,
+            cmake_script=cmake_script.replace('\\', '/'),
         )
     )
 
@@ -131,6 +119,7 @@ def print_error(string):
 
 
 def run_command(commandstr, log=sys.stdout, environment=None):
+    commandstr = commandstr.replace('\\', '/')
     print(OKBLUE + 'Command : ' + commandstr + ENDC)
 
     log.write('\n')
@@ -437,6 +426,9 @@ set and pointed to the directory where ndk-build resides."""
                     cmake_script=os.path.join(product['cmake_root'], target['name'], 'config.cmake'),
                     android_target_dir=android_target_dir
                 )
+
+    print('Please open project in Android studio and build the project')
+    return SUCCESS
 
     # build with gradle
     gradlew_dir = os.path.join(product['android_root'],'gradlew')

@@ -46,9 +46,14 @@ android {
 
     task autoGenRetrace(type:Exec) {
         workingDir "."
-        commandLine "make", "TARGET=${defaultConfig.targetSdkVersion.mApiLevel}"
+//        commandLine "make", "TARGET=${defaultConfig.targetSdkVersion.mApiLevel}"
+        commandLine "make.bat", "${defaultConfig.targetSdkVersion.mApiLevel}"
     }
     preBuild.dependsOn autoGenRetrace
+
+    task wrapper(type: Wrapper){
+        gradleVersion = '7.0.2'
+    }
 
     lintOptions {
         abortOnError false
