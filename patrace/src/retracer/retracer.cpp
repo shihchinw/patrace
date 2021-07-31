@@ -468,6 +468,8 @@ bool Retracer::OpenTraceFile(const char* filename)
     if (!mFile.Open(filename))
         return false;
 
+    mCurDrawNo = 0;
+    mCurFrameNo = 0;
     mFileFormatVersion = mFile.getHeaderVersion();
     mStateLogger.open(std::string(filename) + ".retracelog");
     loadRetraceOptionsFromHeader();
