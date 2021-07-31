@@ -44,8 +44,9 @@ android {
 
     task autoGenRetrace(type:Exec) {
         workingDir "."
-//        commandLine "make", "TARGET=${defaultConfig.targetSdkVersion.mApiLevel}"
-        commandLine "make.bat", "${defaultConfig.targetSdkVersion.mApiLevel}"
+        environment "ANDROID_HOME", System.getenv('ANDROID_HOME')
+        environment "JAVA_HOME", System.getenv('JAVA_HOME')
+        commandLine "cmd", "/c", "make.bat", "${defaultConfig.targetSdkVersion.mApiLevel}"
     }
     preBuild.dependsOn autoGenRetrace
 

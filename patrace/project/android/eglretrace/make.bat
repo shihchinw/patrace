@@ -15,6 +15,21 @@ pushd ..\..\..\src\specs\ && python glxml_header.py && popd
 pushd ..\..\..\src\tracer && python trace.py && popd
 
 echo Generate C header for NativeAPI.java
+if not defined ANDROID_HOME  (
+    echo Can't find environment variable 'ANDROID_HOME'
+    goto :ERROR
+)
+
+if not defined JAVA_HOME  (
+    echo Can't find environment variable 'JAVA_HOME'
+    goto :ERROR
+)
+
 set ANDROID_JAR=%ANDROID_HOME%\platforms\android-%1\android.jar
 "%JAVA_HOME%\bin\javac" -classpath %ANDROID_JAR% ./src/com/arm/pa/paretrace/NativeAPI.java
 "%JAVA_HOME%\bin\javah" -d jni -classpath %ANDROID_JAR%;src com.arm.pa.paretrace.NativeAPI
+goto :EOF
+
+:ERROR
+echo Failed with error #%errorlevel%.
+exit /b %errorlevel%

@@ -19,6 +19,7 @@ This branch contains few modifications to build eglretracer from Android Studio 
 4. Set two environment variables **NDK** and **JAVA_HOME** to corresponding installation folders
     ```
     set NDK=C:\android-sdk-windows\ndk\21.1.6352462
+    set ANDROID_HOME=C:\android-sdk-windows
     set JAVA_HOME=C:\java-se-8u41-ri
     ```
 5. Install [Python 3.x](https://www.python.org/downloads/windows/)
