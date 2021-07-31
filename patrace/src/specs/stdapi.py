@@ -26,7 +26,7 @@
 """C basic types"""
 
 
-import debug
+from . import debug
 
 draw_array_function_names = set([
     "glDrawArrays",
@@ -701,7 +701,7 @@ class Polymorphic(Type):
             else:
                 cases[i].append(case)
 
-        return zip(cases, types)
+        return list(zip(cases, types))
 
 
 def EnumPolymorphic(enumName, switchExpr, switchTypes, defaultType, contextLess=True):

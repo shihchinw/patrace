@@ -3,9 +3,9 @@
 import os
 import re
 import xml.etree.ElementTree as ET
-import gltypes
+from . import gltypes
 import sys
-from gltypes import *
+from .gltypes import *
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 tree = ET.parse(os.path.join(script_dir, '../../../thirdparty/opengl-registry/xml/gl.xml'))
@@ -60,13 +60,13 @@ def GlFunction(*args, **kwargs):
 
 def print_gl_functions():
     # Sort alphabetical on function name
-    sorted_commands = [command for name, command in all_commands.iteritems()]
+    sorted_commands = [command for name, command in list(all_commands.items())]
     sorted_commands.sort(key=lambda c: c['function_name'])
 
-    print '#include <GLES/gl.h>'
-    print
-    print '#define EXPORT extern "C" __attribute__ ((visibility ("default")))'
-    print
+    print('#include <GLES/gl.h>')
+    print()
+    print('#define EXPORT extern "C" __attribute__ ((visibility ("default")))')
+    print()
     for command in sorted_commands:
         param = [' '.join(p['strlist']) for p in command['parameters']]
         call_list = [p['strlist'][-1] for p in command['parameters']]
@@ -81,7 +81,7 @@ EXPORT {return_type_str} {function_name}({param_string});
     return ({return_type_str})0;
 }}
 '''
-        print(function_template.format(**command))
+        print((function_template.format(**command)))
 
 if __name__ == '__main__':
     orig_stdout = sys.stdout

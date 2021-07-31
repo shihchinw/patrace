@@ -68,32 +68,21 @@ def update_android_versions(major, minor, patch, revision, version_type, source_
 
     release_code = str(int('%d%02d%d' % (major, minor, patch)))
 
+    def _copy_file_and_replaced_texts(in_file_path, out_file_path, **kw):
+        with open(in_file_path) as in_file:
+            with open(out_file_path, 'w') as out_file:
+                content = in_file.read()
+                out_file.write(content.format(**kw))
+
     # Write correct version in <string name="version"></string>
-    in_file = os.path.join(android_target_dir, 'res/values/.strings.xml.template')
-    out_file = os.path.join(android_target_dir, 'res/values/strings.xml')
-    try:
-        shutil.copy(in_file, out_file)
-    except IOError:
-        pass
-    release_version_command = r'sed -i -e "s/\(<string name=\"version\">\).*\(<\/string>\)/\1{release_version}\2/g" {edit_file}'.format(
-        release_version=release_version,
-        edit_file=out_file
-    )
-    run_command(release_version_command)
+    in_file_path = os.path.join(android_target_dir, 'res/values/.strings.xml.template')
+    out_file_path = os.path.join(android_target_dir, 'res/values/strings.xml')
+    _copy_file_and_replaced_texts(in_file_path, out_file_path, k_version_desc=release_version)
 
     # Write correct release code in android:versionCode=""
-    in_file = os.path.join(android_target_dir, '.AndroidManifest.xml.template')
-    out_file = os.path.join(android_target_dir, 'AndroidManifest.xml')
-    try:
-        shutil.copy(in_file, out_file)
-    except IOError:
-        pass
-    release_code_pattern = r'sed -i -e "s/\(android:versionCode=\"\)[0-9]*/\1{release_code}/g" {edit_file}'.format(
-        release_code=release_code,
-        edit_file=out_file
-    )
-    run_command(release_code_pattern)
-
+    in_file_path = os.path.join(android_target_dir, '.AndroidManifest.xml.template')
+    out_file_path = os.path.join(android_target_dir, 'AndroidManifest.xml')
+    _copy_file_and_replaced_texts(in_file_path, out_file_path, k_android_ver_code=release_code)
 
 def update_cmake_versions(major, minor, patch, revision, version_type, source_root, cmake_script, **kw):
     run_command(
@@ -109,14 +98,14 @@ def update_cmake_versions(major, minor, patch, revision, version_type, source_ro
             ' -DCMAKE_VERBOSE_MAKEFILE=TRUE'
             ' -P {cmake_script}'
         ).format(
-            source_root=source_root,
+            source_root=source_root.replace('\\', '/'),
             major=major,
             minor=minor,
             patch=patch,
             revision=revision,
             version_type=version_type,
             testlib=os.environ['TEST_LIBRARY'] if 'TEST_LIBRARY' in os.environ else '',
-            cmake_script=cmake_script,
+            cmake_script=cmake_script.replace('\\', '/'),
         )
     )
 
@@ -132,6 +121,7 @@ def print_error(string):
 
 
 def run_command(commandstr, log=sys.stdout, environment=None):
+    commandstr = commandstr.replace('\\', '/')
     print(OKBLUE + 'Command : ' + commandstr + ENDC)
 
     log.write('\n')
@@ -145,10 +135,10 @@ def run_command(commandstr, log=sys.stdout, environment=None):
     p.communicate()
 
     if p.returncode != SUCCESS:
-        print "The following command failed with error code {code}:\n{command}".format(
+        print("The following command failed with error code {code}:\n{command}".format(
             code=p.returncode,
             command=commandstr
-        )
+        ))
         sys.exit(p.returncode)
 
     return p.returncode
@@ -254,11 +244,11 @@ def build_project(platform, variant, build_dir, install_dir, project_path, log_f
 
 
 def install(src, dst):
-    print "Installing: {src} -> {dst}".format(src=src, dst=dst)
+    print("Installing: {src} -> {dst}".format(src=src, dst=dst))
     try:
         shutil.copy(src, dst)
     except IOError:
-        print "Unable to copy file: {src}".format(src=src)
+        print("Unable to copy file: {src}".format(src=src))
         sys.exit(ERROR)
 
 
@@ -361,7 +351,7 @@ set and pointed to the directory where ndk-build resides."""
                          )
         return ERROR
 
-    print "Using ndk-build: {0}".format(os.environ['NDK'])
+    print("Using ndk-build: {0}".format(os.environ['NDK']))
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
     products = {
@@ -438,6 +428,8 @@ set and pointed to the directory where ndk-build resides."""
                     android_target_dir=android_target_dir
                 )
 
+    return SUCCESS
+
     # Update Android project (runs "android update project")
     update_android_projects(src_path)
 
@@ -445,9 +437,9 @@ set and pointed to the directory where ndk-build resides."""
         product = products[product_name]
 
         for target in product['targets']:
-            print "*" * 70
-            print "Building {}/{}".format(product['name'], target['name'])
-            print "*" * 70
+            print("*" * 70)
+            print("Building {}/{}".format(product['name'], target['name']))
+            print("*" * 70)
             android_target_dir = os.path.join(product['android_root'], target['name'])
 
             # Build

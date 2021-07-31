@@ -48,7 +48,8 @@ if __name__ == '__main__':
 
     if args.platform == 'android':
         # Run CMake first to create generated files
-        build_project('x11_x64', variant=args.type, build_dir=args.build_dir, install_dir=args.install_dir,
+        platform = 'win' if os.name == 'nt' else 'x11_x64'
+        build_project(platform, variant=args.type, build_dir=args.build_dir, install_dir=args.install_dir,
             project_path=os.path.abspath(os.path.join(script_dir, '..', 'patrace', 'project', 'cmake')),
             cmake_defines=[], stop_early=True
         )
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         )
     else:
         if not args.platform in linux_platforms:
-            print >> sys.stderr, 'Unsupported platform: %s' % args.platform
+            print('Unsupported platform: %s' % args.platform, file=sys.stderr)
             sys.exit(-1)
         returncode = build_project(
             platform=args.platform,

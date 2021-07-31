@@ -28,7 +28,7 @@
 """
 
 import os
-from gltypes import *
+from .gltypes import *
 import xml.etree.ElementTree as ET
 
 # Build up set of functions from XML for validation

@@ -48,7 +48,7 @@ def generateSourceFile(protos, folder, fname, pythonCmd, manual_imp_funcs, inclu
     dirname = os.path.join(os.path.dirname(os.path.realpath(__file__)), folder)
     filename = os.path.join(dirname, fname)
 
-    keys = protos.keys()
+    keys = list(protos.keys())
     keys.sort()
 
     if not os.path.exists(dirname):
@@ -171,7 +171,7 @@ def generateSourceFile(protos, folder, fname, pythonCmd, manual_imp_funcs, inclu
             f.write("}\n\n")
         f.write("} // end of extern C")
 
-    print 'Generated %s/%s' % (folder, fname)
+    print('Generated %s/%s' % (folder, fname))
 
     return 0
 
@@ -225,7 +225,7 @@ def GenerateWrapper(headerDir, pythonCmd, manual_imp_funcs):
                     command_name = command.get('name')
                     sum_commands[command_name] = glcommands[command_name]
         elif not ext.get('supported'):
-            print 'No supported attribute for extension %s' % ext.get('name')
+            print('No supported attribute for extension %s' % ext.get('name'))
     generateSourceFile(sum_commands, 'gles1', 'auto.cpp', pythonCmd, manual_imp_funcs, includes)
     all_commands.update(sum_commands)
     all_includes.extend(includes)
@@ -236,9 +236,9 @@ def GenerateWrapper(headerDir, pythonCmd, manual_imp_funcs):
     return 0
 
 def usage():
-    print "Generate wrapper libraries based on khronos XML"
-    print "Options:"
-    print "-h Path to the khronos headers (Default = '../../../thirdparty/opengl-registry/api/'"
+    print("Generate wrapper libraries based on khronos XML")
+    print("Options:")
+    print("-h Path to the khronos headers (Default = '../../../thirdparty/opengl-registry/api/'")
 
 if __name__ == '__main__':
     opts = None
@@ -248,14 +248,14 @@ if __name__ == '__main__':
 
     try:
         opts,args = getopt.getopt(sys.argv[1:], "h:", ["help"])
-    except getopt.GetoptError, err:
-        print str(err)
+    except getopt.GetoptError as err:
+        print(str(err))
         usage()
         sys.exit(0)
 
     # Parse options:
     for o, a in opts:
-        print o, a
+        print(o, a)
         if o == '-h':
             headerDir = a
         elif o == "--help":

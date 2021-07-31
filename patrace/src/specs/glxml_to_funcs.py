@@ -3,9 +3,9 @@
 import os
 import re
 import xml.etree.ElementTree as ET
-import gltypes
+from . import gltypes
 import sys
-from gltypes import *
+from .gltypes import *
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 tree = ET.parse(os.path.join(script_dir, '../../../thirdparty/opengl-registry/xml/gl.xml'))
@@ -67,34 +67,34 @@ def GlFunction(*args, **kwargs):
 
 def print_prototypes():
     # Sort alphabetical on function name
-    sorted_commands = [command for name, command in all_commands.iteritems()]
+    sorted_commands = [command for name, command in list(all_commands.items())]
     sorted_commands.sort(key=lambda c: c['function_name'])
 
-    print '#ifndef _EXT_FUNC_HACK_H'
-    print '#define _EXT_FUNC_HACK_H'
-    print
-    print 'typedef void (*GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);'
-    print 'typedef void (*GLDEBUGPROCKHR)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);'
+    print('#ifndef _EXT_FUNC_HACK_H')
+    print('#define _EXT_FUNC_HACK_H')
+    print()
+    print('typedef void (*GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);')
+    print('typedef void (*GLDEBUGPROCKHR)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);')
     for command in sorted_commands:
         param = []
         for p in command['parameters']:
             param.append('%s' % ' '.join(p['strlist']))
         command['param_string'] = ', '.join(param)
         command['function_name_upper'] = command['function_name'].upper()
-        print
-        print('typedef {return_type_str} (GLAPIENTRY *PA_PFN{function_name_upper}PROC)({param_string});'.format(**command))
-        print('extern PA_PFN{function_name_upper}PROC pa_{function_name};'.format(**command))
-        print('#define {function_name} pa_{function_name}'.format(**command))
-    print
-    print '#endif'
+        print()
+        print(('typedef {return_type_str} (GLAPIENTRY *PA_PFN{function_name_upper}PROC)({param_string});'.format(**command)))
+        print(('extern PA_PFN{function_name_upper}PROC pa_{function_name};'.format(**command)))
+        print(('#define {function_name} pa_{function_name}'.format(**command)))
+    print()
+    print('#endif')
 
 def print_functions():
     # Sort alphabetical on function name
-    sorted_commands = [command for name, command in all_commands.iteritems()]
+    sorted_commands = [command for name, command in list(all_commands.items())]
     sorted_commands.sort(key=lambda c: c['function_name'])
 
-    print '#include "pa_demo.h"'
-    print '#include "pa_gl31.h"'
+    print('#include "pa_demo.h"')
+    print('#include "pa_gl31.h"')
     for command in sorted_commands:
         param = [' '.join(p['strlist']) for p in command['parameters']]
         call_list = [p['strlist'][-1] for p in command['parameters']]
@@ -110,7 +110,7 @@ static {return_type_str} dummy_{function_name}({param_string})
 }}
 PA_PFN{function_name_upper}PROC pa_{function_name} = dummy_{function_name};
 '''
-        print(function_template.format(**command))
+        print((function_template.format(**command)))
 
 if __name__ == '__main__':
 

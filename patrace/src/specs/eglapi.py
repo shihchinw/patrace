@@ -26,8 +26,8 @@
 """EGL API description."""
 
 
-from stdapi import *
-from gltypes import *
+from .stdapi import *
+from .gltypes import *
 
 EGLNativeDisplayType = IntPointer("EGLNativeDisplayType")
 EGLNativeWindowType = IntPointer("EGLNativeWindowType")
