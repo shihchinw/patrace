@@ -279,6 +279,7 @@ public class GLThread extends Thread {
                 if (parentIntent.hasExtra("callset")) {
                     js.put("snapshotCallset", parentIntent.getStringExtra("callset"));
                     js.put("snapshotPrefix", parentIntent.getStringExtra("callsetprefix"));
+                    js.put("snapshotFrameNames", parentIntent.getBooleanExtra("snapshotFrameNames", false));
                 }
                 js.put("callStats", parentIntent.getBooleanExtra("callstats", false));
                 js.put("statelog", parentIntent.getBooleanExtra("statelog", false));

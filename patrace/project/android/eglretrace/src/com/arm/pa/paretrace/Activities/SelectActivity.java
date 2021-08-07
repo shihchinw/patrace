@@ -392,6 +392,9 @@ public class SelectActivity extends Activity
         if (enable_snapshot) {
             intent.putExtra("callset", ((EditText)findViewById(R.id.option_snapshotcallset)).getText().toString());
             intent.putExtra("callsetprefix", ((EditText)findViewById(R.id.option_snapshotcallsetprefix)).getText().toString());
+
+            boolean enable_framenames = ((CheckBox)findViewById(R.id.option_snapshotframenames)).isChecked();
+            intent.putExtra("snapshotFrameNames", enable_framenames);
         }
 
         boolean enable_framerange = ((CheckBox)findViewById(R.id.option_enableframerange)).isChecked();
