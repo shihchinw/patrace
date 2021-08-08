@@ -188,6 +188,8 @@ void TraceExecutor::overrideDefaultsWithJson(Json::Value &value)
     }
 
     options.mSnapshotFrameNames = value.get("snapshotFrameNames", false).asBool();
+    options.mSnapSequence = value.get("snapSequence", false).asBool();
+    options.mRefSnapSequencePath = value.get("refSnapSequence", "").asString();
 
     // Whether or not to upload taken snapshots.
     options.mUploadSnapshots = value.get("snapshotUpload", false).asBool();

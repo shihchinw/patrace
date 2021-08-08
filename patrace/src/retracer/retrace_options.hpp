@@ -50,6 +50,7 @@ struct RetraceOptions
     float               mOverrideResRatioH = 0.0f;
 
     std::string         mSnapshotPrefix;
+    std::string         mRefSnapSequencePath;
     common::CallSet*    mSnapshotCallSet = nullptr;
     bool                mUploadSnapshots = false;
     bool                mFailOnShaderError = false;
@@ -64,6 +65,7 @@ struct RetraceOptions
     bool                mMeasureSwapTime = false;
     Profile             mApiVersion = PROFILE_ES2;
     bool                mSnapshotFrameNames = false;
+    bool                mSnapSequence = false;
 
     bool                mStrictEGLMode = false;
     bool                mStrictColorMode = false;

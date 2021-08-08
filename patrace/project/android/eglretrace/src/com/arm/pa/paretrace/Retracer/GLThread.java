@@ -314,6 +314,13 @@ public class GLThread extends Thread {
 
                 if (parentIntent.hasExtra("snapshotCallset")) {
                     js.put("snapshotCallset", parentIntent.getStringExtra("snapshotCallset") ); // default off
+
+                    js.put("snapshotFrameNames", parentIntent.getBooleanExtra("snapshotFrameNames", false));
+                    js.put("snapSequence", parentIntent.getBooleanExtra("snapSequence", false));
+
+                    if (parentIntent.hasExtra("refSnapSequence")) {
+                        js.put("refSnapSequence", parentIntent.getStringExtra("refSnapSequence") ); // default off
+                    }
                 }
 
                 if (parentIntent.hasExtra("perfstart") && parentIntent.hasExtra("perfend")) {

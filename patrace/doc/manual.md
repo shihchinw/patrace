@@ -134,8 +134,8 @@ The Python tree can get stale and fail to rebuild. You can clean the Python buil
 If you have strange errors and wish to reset the build system, try this:
 
     rm -rf builds/*
-    git clean -fxd patrace/python  
-    git submodule update --init  
+    git clean -fxd patrace/python
+    git submodule update --init
 
 If you do not wish to build the Python code (not doing so speeds up Linux builds considerably), you can do this by setting the environment variable
 
@@ -148,9 +148,9 @@ Tracing
 
 Make sure you have a rooted device where developer mode is enabled and connect it to your desktop. You then need to remount the system directory to install files there.
 
-    adb shell  
-    su  
-    mount -o rw,remount /system  
+    adb shell
+    su
+    mount -o rw,remount /system
 
 When it comes to installing the fakedriver, the method differs depending on which device you have. Android will load the first driver it finds that goes by the name `libGLES_*.so` that resides in
 
@@ -168,43 +168,43 @@ By convention, we call our fakedriver `libGLES_wrapper.so`.
 
 Example instructions for **Galaxy S7** (32-bit apps):
 
-    adb push fakedriver/libGLES_wrapper_arm.so /sdcard/  
-    adb shell su -c mount -o rw,remount /system  
-    adb shell su -c cp /sdcard/libGLES_wrapper_arm.so /system/lib/egl/libGLES.so  
-    adb shell su -c rm /sdcard/libGLES_wrapper_arm.so  
-    adb shell su -c chmod 755 /system/lib/egl/libGLES.so  
-    adb shell su -c mount -o ro,remount /system  
+    adb push fakedriver/libGLES_wrapper_arm.so /sdcard/
+    adb shell su -c mount -o rw,remount /system
+    adb shell su -c cp /sdcard/libGLES_wrapper_arm.so /system/lib/egl/libGLES.so
+    adb shell su -c rm /sdcard/libGLES_wrapper_arm.so
+    adb shell su -c chmod 755 /system/lib/egl/libGLES.so
+    adb shell su -c mount -o ro,remount /system
 
 ### Installing interceptor on Android
 
 Install the interceptor and configure it:
 
-    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm.so /sdcard/  
-    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm64.so /sdcard/  
-    adb shell  
-    su  
-    mount -o rw,remount /system  
+    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm.so /sdcard/
+    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm64.so /sdcard/
+    adb shell
+    su
+    mount -o rw,remount /system
 
-    cp /sdcard/libinterceptor_patrace_arm.so /system/lib/egl/libinterceptor_patrace_arm.so  
-    cp /sdcard/libinterceptor_patrace_arm64.so /system/lib64/egl/libinterceptor_patrace_arm64.so  
+    cp /sdcard/libinterceptor_patrace_arm.so /system/lib/egl/libinterceptor_patrace_arm.so
+    cp /sdcard/libinterceptor_patrace_arm64.so /system/lib64/egl/libinterceptor_patrace_arm64.so
 
-    chmod 755 /system/lib/egl/libinterceptor_patrace_arm.so  
-    chmod 755 /system/lib64/egl/libinterceptor_patrace_arm64.so  
+    chmod 755 /system/lib/egl/libinterceptor_patrace_arm.so
+    chmod 755 /system/lib64/egl/libinterceptor_patrace_arm64.so
 
-    echo "/system/lib/egl/libinterceptor_patrace_arm.so" > /system/lib/egl/interceptor.cfg  
-    echo "/system/lib64/egl/libinterceptor_patrace_arm64.so" > /system/lib64/egl/interceptor.cfg  
+    echo "/system/lib/egl/libinterceptor_patrace_arm.so" > /system/lib/egl/interceptor.cfg
+    echo "/system/lib64/egl/libinterceptor_patrace_arm64.so" > /system/lib64/egl/interceptor.cfg
 
-    chmod 644 /system/lib/egl/interceptor.cfg  
-    chmod 644 /system/lib64/egl/interceptor.cfg  
+    chmod 644 /system/lib/egl/interceptor.cfg
+    chmod 644 /system/lib64/egl/interceptor.cfg
 
-    mkdir /data/apitrace  
+    mkdir /data/apitrace
     chmod 777 /data/apitrace
 
 Sometimes you will need to store the traces on the SD card instead:
 
-    adb shell su -c mkdir /sdcard/patrace  
-    adb shell su -c chmod 777 /sdcard/patrace  
-    adb shell su -c ln -s /sdcard/Android/data /data/apitrace  
+    adb shell su -c mkdir /sdcard/patrace
+    adb shell su -c chmod 777 /sdcard/patrace
+    adb shell su -c ln -s /sdcard/Android/data /data/apitrace
 
 For Android before version 4.4, you need to update `egl.cfg`. Either update you `egl.cfg` manually, or use the provided one:
 
@@ -220,42 +220,42 @@ You can check if your Android 8 device supports Treble in adb shell:
 
 Return value is "true" means your device supports Treble. Then you need to use the following steps to install fakedriver (32-bit apps):
 
-    adb push fakedriver/libGLES_wrapper_arm.so /sdcard/  
+    adb push fakedriver/libGLES_wrapper_arm.so /sdcard/
 
-    adb shell  
-    su  
-    mount -o rw,remount /vendor  
+    adb shell
+    su
+    mount -o rw,remount /vendor
 
-    cp /sdcard/libGLES_wrapper_arm.so /vendor/lib/egl/  
-    rm /sdcard/libGLES_wrapper_arm.so  
-    chmod 755 /vendor/lib/egl/libGLES_wrapper_arm.so  
-    mv /vendor/lib/egl/libGLES_mali.so /vendor/lib/egl/lib_mali.so  
-    mount -o ro,remount /vendor  
+    cp /sdcard/libGLES_wrapper_arm.so /vendor/lib/egl/
+    rm /sdcard/libGLES_wrapper_arm.so
+    chmod 755 /vendor/lib/egl/libGLES_wrapper_arm.so
+    mv /vendor/lib/egl/libGLES_mali.so /vendor/lib/egl/lib_mali.so
+    mount -o ro,remount /vendor
 
 ### Installing interceptor on Android 8
 
 Similarly, install the interceptor to /vendor/lib(64)/egl and configure it:
 
-    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm.so /sdcard/  
-    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm64.so /sdcard/  
-    adb shell  
-    su  
-    mount -o rw,remount /vendor  
+    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm.so /sdcard/
+    adb push install/patrace/android/release/egltrace/libinterceptor_patrace_arm64.so /sdcard/
+    adb shell
+    su
+    mount -o rw,remount /vendor
 
-    cp /sdcard/libinterceptor_patrace_arm.so /vendor/lib/egl/libinterceptor_patrace_arm.so  
-    cp /sdcard/libinterceptor_patrace_arm64.so /vendor/lib64/egl/libinterceptor_patrace_arm64.so  
+    cp /sdcard/libinterceptor_patrace_arm.so /vendor/lib/egl/libinterceptor_patrace_arm.so
+    cp /sdcard/libinterceptor_patrace_arm64.so /vendor/lib64/egl/libinterceptor_patrace_arm64.so
 
-    chmod 755 /vendor/lib/egl/libinterceptor_patrace_arm.so  
-    chmod 755 /vendor/lib64/egl/libinterceptor_patrace_arm64.so  
+    chmod 755 /vendor/lib/egl/libinterceptor_patrace_arm.so
+    chmod 755 /vendor/lib64/egl/libinterceptor_patrace_arm64.so
 
-    echo "/vendor/lib/egl/libinterceptor_patrace_arm.so" > /vendor/lib/egl/interceptor.cfg  
-    echo "/vendor/lib64/egl/libinterceptor_patrace_arm64.so" > /vendor/lib64/egl/interceptor.cfg  
+    echo "/vendor/lib/egl/libinterceptor_patrace_arm.so" > /vendor/lib/egl/interceptor.cfg
+    echo "/vendor/lib64/egl/libinterceptor_patrace_arm64.so" > /vendor/lib64/egl/interceptor.cfg
 
-    chmod 644 /vendor/lib/egl/interceptor.cfg  
-    chmod 644 /vendor/lib64/egl/interceptor.cfg  
+    chmod 644 /vendor/lib/egl/interceptor.cfg
+    chmod 644 /vendor/lib64/egl/interceptor.cfg
 
-    mkdir /data/apitrace  
-    chmod 777 /data/apitrace  
+    mkdir /data/apitrace
+    chmod 777 /data/apitrace
 
 ### Installing fakedriver on Android 9
 
@@ -267,8 +267,8 @@ You can check if your Android 8 device supports Treble in adb shell:
 
 Return value is "true" means your device supports Treble. So you need to do the following copying first:
 
-    cp /system/lib64/libstdc++.so /vendor/lib64/  
-    cp /system/lib/libstdc++.so /vendor/lib/  
+    cp /system/lib64/libstdc++.so /vendor/lib64/
+    cp /system/lib/libstdc++.so /vendor/lib/
 
 Then you can follow the steps in "Installing fakedriver on Android 8".
 
@@ -307,8 +307,8 @@ Rename the fakedriver libGLES_wrapper_arm64.so:
 
 The Android Vulkan loader uses 32-bit and 64-bit Vulkan drivers here:
 
-    /vendor/lib/hw/vulkan.<ro.product.platform>.so  
-    /vendor/lib64/hw/vulkan.<ro.product.platform>.so  
+    /vendor/lib/hw/vulkan.<ro.product.platform>.so
+    /vendor/lib64/hw/vulkan.<ro.product.platform>.so
 
 If these 2 files are symbolic links to real DDK(`libGLES_mali.so`) and you renamed the real DDK for installing fakedriver, you need to recreate these symbolic links for Vulkan apps running.
 
@@ -325,7 +325,7 @@ Create the output trace directory in advance, which will be named /data/apitrace
 Example:
 
     echo com.arm.mali.Timbuktu >> /system/lib/egl/appList.cfg
-    chmod 644 /system/lib/egl/appList.cfg  
+    chmod 644 /system/lib/egl/appList.cfg
     mkdir -p /data/apitrace/com.arm.mali.Timbuktu
     chmod 777 /data/apitrace/com.arm.mali.Timbuktu
 
@@ -384,10 +384,10 @@ The most useful keyword is 'FilterSupportedExtension', which, if set to 'true', 
 
 ### Special features of PaTrace Tracer
 
-You may enable or disable extensions, this is useful to create traces that don't use certain extensions. Limiting the extensions an app 'sees' is useful when you want to create a tracefile that is compatible with devices that don't support a given extension. How it works; when an app calls `glGetString(GL_EXTENSIONS)`, only the ones enabled in `/system/lib/egl/tracerparams.cfg` will be returned to the app. Unfortunately, some applications ignore or don't use this information, and may use certain extensions, anyways.The tracer will ignore some extensions like the binary shader extensions by default. You can override this by explicitly listing the extensions to use in `tracerparams.cfg`, as described 
+You may enable or disable extensions, this is useful to create traces that don't use certain extensions. Limiting the extensions an app 'sees' is useful when you want to create a tracefile that is compatible with devices that don't support a given extension. How it works; when an app calls `glGetString(GL_EXTENSIONS)`, only the ones enabled in `/system/lib/egl/tracerparams.cfg` will be returned to the app. Unfortunately, some applications ignore or don't use this information, and may use certain extensions, anyways.The tracer will ignore some extensions like the binary shader extensions by default. You can override this by explicitly listing the extensions to use in `tracerparams.cfg`, as described
 above.The full list of extensions that the device supports will be saved in the trace header.
 
-We never want binary shaders in the resulting trace file, since it can then only be retraced on the same platform. Since binary shaders are supported in GLES3, merely disabling the binary shader extensions may not be enough. You may have to go into Android app settings, and flush all app caches before you run the app to make sure the shader caches are cleared, 
+We never want binary shaders in the resulting trace file, since it can then only be retraced on the same platform. Since binary shaders are supported in GLES3, merely disabling the binary shader extensions may not be enough. You may have to go into Android app settings, and flush all app caches before you run the app to make sure the shader caches are cleared,
 before tracing it.
 
 ### Troubleshooting trace issues
@@ -460,10 +460,10 @@ For a full set of available parameters, see Command Line Parameters in ADB Shell
 
 To retrace some traces which contain external YUV textures on Android 7 or later, you need to add libui.so to /etc/public.libraries.txt out
 
-    adb shell  
-    su  
-    mount -o rw,remount /  
-    echo libui.so >> /etc/public.libraries.txt  
+    adb shell
+    su
+    mount -o rw,remount /
+    echo libui.so >> /etc/public.libraries.txt
 
 If you have a problem opening files on /sdcard, you may need to do this:
 
@@ -495,7 +495,7 @@ The first time you run the file, it is recommended to add the "-debug" command l
 
 There are three different ways to tell the retracer which parameters that should be used: (1) by command line, (2) in adb shell, and (3) by passing a JSON file.
 
-#### Command Line Parameters 
+#### Command Line Parameters
 
 | Parameter                                    | Description                                                                                                                                                                                                                            |
 |----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -555,6 +555,9 @@ There are three different ways to tell the retracer which parameters that should
 | `--ez offscreenSingleTile` | true/false. Draw only one frame for each buffer swap in offscreen mode.                                                                                                                                                                                                                                                                                                      |
 | `--es snapshotPrefix`      | /path/to/snapshots/prefix- Must contain full path and a prefix, resulting screenshots will be named prefix-callnumber.png                                                                                                                                                                                                                                                    |
 | `--es snapshotCallset`     | call begin - call end / frequency, example: '10-100/draw' or '10-100/frame' or '10-100' (snapshot after every call in range!)                                                                                                                                                                                                                                                |
+| `--ez snapshotFrameNames`  | true/false. Encode snapshot image file name with frame number. |
+| `--ez snapSequence`        | true/false. Write a MD5 list of snapshot sequence into a '<$snapshotPrefix>snap.pss' file. (Only enabled when snapshotCallset is not empty.) |
+| `--es refSnapSequence`     | /path/to/snap.pss Set reference file path to the snap-sequence file (.pss). This mode would only dump snapshot image if its MD5 doesn't match the reference entry. |
 | `--ei frame_start`         | Start measure fps from this frame. First allowed frame number is 1 (not 0)                                                                                                                                                                                                                                                                                                   |
 | `--ei frame_end`           | Stop fps measure, and stop playback                                                                                                                                                                                                                                                                                                                                          |
 | `--ez callstats`           | true/false(default)  Output GLES API call statistics to callstats.csv under /sdcard for Android, or under the current dir, time spent in API calls measured in nanoseconds.                                                                                                                                                                                                  |
@@ -675,6 +678,21 @@ The looping functionality in the replayer is very basic. Do not simply assume th
 is to loop twice with the screenshot option set to snap the first frame of the frame range. In this case it will capture two screenshots, of the initial run and
 of the loop run, and then you can compare the two to see if looping works properly.
 
+### Snap-Sequence
+
+Snap-sequence is a compact file which contains snapshots' MD5 data. Instead of writing PNG images and comparing pixels directly, snap-sequence is used to check the MD5 between corresponding snapshots. This could reduce the amount of time for writing PNG images. The worflow is pretty simple:
+
+1. Create a snap-sequence as reference:
+   * Specify **snapshotCallset** to enable snapshot.
+   * Use **snapshotPrefix** to specify output filepath.
+
+    `adb shell am start -n com.arm.pa.paretrace/.Activities.RetraceActivity --es fileName /sdcard/apitrace/trace_repo/foo.pat --es snapshotPrefix /sdcard/apitrace/snap/ref_ --es snapshotCallset */frame --ez snapSequence true`
+
+2. Specify reference sequence with **refSnapSequence**:
+
+    `adb shell am start -n com.arm.pa.paretrace/.Activities.RetraceActivity --es fileName /sdcard/apitrace/trace_repo/foo.pat --es snapshotPrefix /sdcard/apitrace/snap/ --es snapshotCallset */frame --ez snapSequence true --es refSnapSequence /sdcard/apitrace/snap/ref_snap.pss`
+
+
 Other
 -----
 
@@ -688,7 +706,7 @@ The latest .pat file format has the following structure:
 2. Variable length json string "header" described below.
 3. A function signature book (or list) (sigbook), which maps EGL and GLES function names to id's (a number) used per intercepted call. This list is generated from khronos headers when compiling the tracer. When playing back a tracefile, the retracer reads the sigbook. The sigbook is compressed using the 'snappy' compression algorithm.
 4. Finally the real content: intercepted EGL and GLES calls, which are also compressed with "snappy".
- 
+
 The variable length json "header" always contains:
 -   default thread id
 -   glesVersion (1,2,3)
@@ -786,7 +804,7 @@ Now continue the execution of the app:
 
     continue
 
-gdb should now break inside the the eglSwapBuffers.Now you can perform gdb debugging as normal.**Optional:** In order to see function names for system libraries, you can copy them to 
+gdb should now break inside the the eglSwapBuffers.Now you can perform gdb debugging as normal.**Optional:** In order to see function names for system libraries, you can copy them to
 your local machine:
 
     adb pull /system/bin/ ./obj/local/armeabi-v7a/
@@ -839,11 +857,11 @@ All collectors can be configured with the following JSON options:
 
 Existing collectors:
 
-| Name                 | What it does                                                                                                                                                                            | Unit             | Options                             
+| Name                 | What it does                                                                                                                                                                            | Unit             | Options
 |----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|-------------------------------------|
 | `perf`               | Gets CPU Counter from perf                                                                                                                                                              | Cycles           |
 | `battery_temperature`| Gets the battery temperature                                                                                                                                                            | Celsius          |                                     |                                                                                          |
-| `cpufreq`            | CPU frequencies. Each sample is the average frequency used since the last sampling point for each core. Then you also get the max of every core in `highest_avg` for your convenience. | Hz               |                                     
+| `cpufreq`            | CPU frequencies. Each sample is the average frequency used since the last sampling point for each core. Then you also get the max of every core in `highest_avg` for your convenience. | Hz               |
 | `memfreq`            | Memory frequency                                                                                                                                                                        |  Hz              |                                     |                                                                                          |
 | `memfreqdisplay`     | Memory frequency                                                                                                                                                                        |  Hz |                                     |                                                                                          |
 | `memfreqint`         | Memory frequency                                                                                                                                                           |  Hz |                                     |                                                                                          |
@@ -852,12 +870,12 @@ Existing collectors:
 | `cpufreqtrans`       | Number of frequency transitions the CPU has made                                                                                                                                        | Transitions      |                                     |
 | `debug`              | **EXPERIMENTAL**                                                                                                                                                                        |                  |                                     |                                                                                          |
 | `streamline`         | Adds streamline markers to the execution                                                                                                                                                |  None            |                                     |
-| `memory`             | Track amount of memory used                                                                                                                                                             | Kilobytes        |                                     | 
-| `cputemp`            | CPU temperature                                                                                                                                                                         |                  |                                     | 
+| `memory`             | Track amount of memory used                                                                                                                                                             | Kilobytes        |                                     |
+| `cputemp`            | CPU temperature                                                                                                                                                                         |                  |                                     |
 | `gpufreq`            | GPU frequency                                                                                                                                                                           |                  | 'path' : path to GPU frequency file |
-| `procfs`             | Information from /procfs filesystem                                                                                                                                                     | Various          |                                     | 
-| `rusage`             | Information from getrusage() system call                                                                                                                                                | Various          |                                     | 
-| `power`              | TBD                                                                                                                                                                                     |                  | TBD                                 | 
+| `procfs`             | Information from /procfs filesystem                                                                                                                                                     | Various          |                                     |
+| `rusage`             | Information from getrusage() system call                                                                                                                                                | Various          |                                     |
+| `power`              | TBD                                                                                                                                                                                     |                  | TBD                                 |
 | `ferret`             | Monitors CPU usage by polling system files. Gives coarse per thread CPU load statistics (cycles consumed, frequencies during the rune etc.) | Various | 'cpus': List of cpus to monitor. Example: cpus: [0, 2, 3, 5, 7], will monitor core 0, 2, 3, 5 and 7. All work done on the other cores will be ignored.<br>This defaults to all cores on the system if not set.<br><br>'enable_postprocessing': Boolean value. If this is set, the sampled results will be postprocessed at shutdown. Giving per. thread derived statistics like estimated CPU fps etc. Defaults to false.<br><br>'banned_threads': Only used when 'enable_postprocessing' is set to true. This is a list of thread names to exclude when generating derived statistics. Defaults to: 'banned_threads': ["ferret"], this will exclude the CPU overhead added by the ferret instrumentation.<br><br>'output_dir': Path to an existing directory where sample data will be stored. |
 | `set`                | CPU counter set, an option with perf collector                                                                                              |         | 0: default for generalized hardware CPU events; 1: CPU cache related; 2: CPU bandwidth related; 3: CPU bandwidth related on Cortex-A73; 4: CPU cycles for all/main thread including user/kernel space; 5: CPU InstructionRetired for all/main thread including user/kernel space; 6: CPU cycle and instruction for all/main thread |
 
@@ -912,16 +930,16 @@ To do this, create a json parameter file similar to the one below (we will refer
 
 Then run paretrace as follows:
 
-    # Linux  
-    paretrace -jsonParameters parameters.json results.json .  
+    # Linux
+    paretrace -jsonParameters parameters.json results.json .
 
 
-    # Android (using adb)  
-    adb shell am start -n com.arm.pa.paretrace/.Activities.RetraceActivity --es jsonData parameters.json --es resultFile results.json  
+    # Android (using adb)
+    adb shell am start -n com.arm.pa.paretrace/.Activities.RetraceActivity --es jsonData parameters.json --es resultFile results.json
 
 
-    # Android, using the (on device) android shell  
-    am start -n com.arm.pa.paretrace/.Activities.RetraceActivity --es jsonData parameters.json --es resultFile results.json  
+    # Android, using the (on device) android shell
+    am start -n com.arm.pa.paretrace/.Activities.RetraceActivity --es jsonData parameters.json --es resultFile results.json
 
 
 Once the run finishes the most relevant CPU statistics will be printed to stdout.

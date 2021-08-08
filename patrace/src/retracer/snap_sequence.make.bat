@@ -1,0 +1,1 @@
+flatc --cpp --gen-object-api .\snap_sequence.fbs

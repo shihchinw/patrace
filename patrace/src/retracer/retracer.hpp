@@ -2,6 +2,7 @@
 #define _RETRACER_HPP_
 
 #include "retracer/retrace_options.hpp"
+#include "retracer/snap_sequence_generated.h"
 #include "retracer/state.hpp"
 #include "retracer/texture.hpp"
 #include "helper/states.h"
@@ -93,6 +94,9 @@ public:
     void PerfEnd();
 
     common::InFile mFile;
+    std::unique_ptr<io::SnapSequenceT> mSequenceObj = nullptr;
+    std::unique_ptr<io::SnapSequenceT> mRefSequenceObj = nullptr;
+    std::ofstream mSequenceFile;
     RetraceOptions mOptions;
     StateMgr mState;
     common::BCall_vlen mCurCall;
@@ -140,6 +144,8 @@ private:
     void loadRetraceOptionsFromHeader();
     float getDuration(int64_t lastTime, int64_t* thisTime) const;
     float ticksToSeconds(long long t) const;
+
+    bool initializeSequenceRecord(const char* traceName);
     void initializeCallCounter();
 
 #ifndef _WIN32

@@ -56,6 +56,20 @@ void retrace_eglMakeCurrent(char* src);
 void retrace_eglCreateContext(char* src);
 void retrace_eglCreateWindowSurface(char* src);
 
+namespace {
+
+std::string getTimeStamp()
+{
+    // Add timestamp (ISO format)
+    char timeBuf[256];
+    time_t now;
+    time(&now);
+    strftime(timeBuf, sizeof(timeBuf), "%FT%TZ", gmtime(&now));
+    return timeBuf;
+}
+
+} // End of namespace anonymous.
+
 namespace retracer {
 
 Retracer gRetracer;
@@ -477,6 +491,12 @@ bool Retracer::OpenTraceFile(const char* filename)
     mExIdEglSwapBuffersWithDamage = mFile.NameToExId("eglSwapBuffersWithDamageKHR");
     mFinish.store(false);
 
+    if (mOptions.mSnapSequence) {
+        if (!initializeSequenceRecord(filename)) {
+            return false;
+        }
+    }
+
     initializeCallCounter();
 
     return true;
@@ -492,6 +512,7 @@ void Retracer::CloseTraceFile()
     mFile.Close();
     mFileFormatVersion = INVALID_VERSION;
     mStateLogger.close();
+    mSequenceFile.close();
 
     if (mOptions.mCallStats)
     {
@@ -533,6 +554,8 @@ void Retracer::CloseTraceFile()
     mState.Reset();
     mCSBuffers.clear();
     mSnapshotPaths.clear();
+    mSequenceObj.reset();
+    mRefSequenceObj.reset();
 
     if (shaderCacheFile)
     {
@@ -591,6 +614,69 @@ void Retracer::loadRetraceOptionsFromHeader()
     {
         mOptions.mOnscreenConfig.override(mOptions.mOverrideConfig);
     }
+}
+
+bool Retracer::initializeSequenceRecord(const char* traceName)
+{
+    const Json::Value jsHeader = mFile.getJSONHeader();
+    mSequenceObj = std::unique_ptr<io::SnapSequenceT>(new io::SnapSequenceT());
+    mSequenceObj->timestamp = getTimeStamp();
+    mSequenceObj->trace_name = traceName;
+    const unsigned int startFrame = mOptions.mBeginMeasureFrame;
+    const unsigned int endFrame = mOptions.mEndMeasureFrame < 9999999 ? mOptions.mEndMeasureFrame : jsHeader.get("frameCnt", 1).asUInt();
+
+    if (startFrame >= endFrame) {
+        DBG_LOG("Invalid frame range for snap sequence: %d-%d\n", startFrame, endFrame);
+        return false;
+    }
+
+    mSequenceObj->start_frame = startFrame;
+    mSequenceObj->end_frame = endFrame;
+    mSequenceObj->frame_count = endFrame - startFrame;
+
+    // mOptions.mLoopTimes works like a inclusive end index: 0 -> one run, 1 -> two runs.
+    const unsigned short loopCount = mOptions.mLoopTimes + 1;
+    mSequenceObj->loop_count = loopCount;
+    mSequenceObj->record_array.resize(loopCount);
+    for (int i = 0; i < loopCount; ++i) {
+        mSequenceObj->record_array[i] = std::unique_ptr<retracer::io::SequenceT>(new retracer::io::SequenceT());
+    }
+
+    mSequenceObj->record_array[0]->exit_frame = 0;
+    mSequenceObj->record_array[0]->frame_md5_array.resize(mSequenceObj->frame_count);   // Allocate first record data only.
+
+    // Open sequence file.
+    std::string sequenceFilePath = mOptions.mSnapshotPrefix + "snap.pss";
+    mSequenceFile.open(sequenceFilePath);
+    if (!mSequenceFile.is_open()) {
+        DBG_LOG("Failed to open sequence file %s\n", sequenceFilePath.c_str());
+        return false;
+    }
+
+    flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(retracer::io::SnapSequence::Pack(fbb, mSequenceObj.get()));
+    mSequenceFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), fbb.GetSize());
+
+    // Read reference sequence object.
+    if (!mOptions.mRefSnapSequencePath.empty()) {
+        std::ifstream infile;
+        infile.open(mOptions.mRefSnapSequencePath, std::ios::binary | std::ios::in);
+        if (!infile.is_open()) {
+            DBG_LOG("Failed to open reference sequence file %s\n", mOptions.mRefSnapSequencePath.c_str());
+            return false;
+        }
+
+        infile.seekg(0, std::ios::end);
+        auto length = static_cast<size_t>(infile.tellg());
+        infile.seekg(0, std::ios::beg);
+        std::vector<char> buffer(length);
+        infile.read(buffer.data(), length);
+        infile.close();
+
+        mRefSequenceObj = retracer::io::UnPackSnapSequence(buffer.data());
+    }
+
+    return true;
 }
 
 std::vector<Texture> Retracer::getTexturesToDump()
@@ -731,6 +817,20 @@ void Retracer::StepShot(unsigned int callNo, unsigned int frameNo, const char *f
     }
 }
 
+void UpdateSequenceToFile(io::SnapSequenceT *sequenceObj, std::ofstream &outfile, unsigned int frameNo, unsigned int loopNo, common::MD5Digest &md5)
+{
+    sequenceObj->record_array[loopNo]->exit_frame = frameNo;
+    sequenceObj->record_array[loopNo]->frame_md5_array[frameNo] = io::MD5Digest(
+        flatbuffers::span<const uint8_t, 16>(reinterpret_cast<const uint8_t*>(md5.data()), 16));
+
+    flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(retracer::io::SnapSequence::Pack(fbb, sequenceObj));
+
+    outfile.seekp(std::fstream::beg);
+    outfile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), fbb.GetSize());
+    outfile.flush();
+}
+
 void Retracer::TakeSnapshot(unsigned int callNo, unsigned int frameNo, const char *filename)
 {
     // Only take snapshots inside the measurement range
@@ -778,45 +878,76 @@ void Retracer::TakeSnapshot(unsigned int callNo, unsigned int frameNo, const cha
                 return;
             }
 
-            std::string filenameToBeUsed;
-            if (filename)
+            bool writeImageFile = (mSequenceObj == nullptr);
+            if (mSequenceObj)
             {
-                filenameToBeUsed = filename;
-            }
-            else // no incoming filename, we must generate one
-            {
-                int attachmentIndex = colorAttachment - GL_COLOR_ATTACHMENT0;
-                bool validAttachmentIndex = attachmentIndex >= 0 && attachmentIndex < maxAttachments;
-                if (!validAttachmentIndex)
-                {
-                    attachmentIndex = 0;
-                }
+                common::MD5Digest curMD5(src->start(), src->stride(), src->width * src->channels, src->height);
+                UpdateSequenceToFile(mSequenceObj.get(), mSequenceFile, frameNo, mLoopTimes, curMD5);
 
-                std::stringstream ss;
-                if (mOptions.mSnapshotFrameNames || mOptions.mLoopTimes > 0 || mOptions.mLoopSeconds > 0)
+                if (mRefSequenceObj)
                 {
-                    ss << mOptions.mSnapshotPrefix << std::setw(4) << std::setfill('0') << frameNo << "_l" << mLoopTimes << ".png";
+                    int entryIdx = frameNo - mRefSequenceObj->start_frame + 1;
+                    if (entryIdx >= 0 && entryIdx < mRefSequenceObj->frame_count)
+                    {
+                        common::MD5Digest refMD5;
+                        memcpy(static_cast<unsigned char*>(refMD5), mRefSequenceObj->record_array[0]->frame_md5_array[entryIdx].digest(), 16);
+                        writeImageFile = (curMD5 != refMD5);
+                        DBG_LOG("[f: %04d] MD5 %s : %s -> match: %s\n", frameNo, curMD5.text().c_str(), refMD5.text().c_str(), writeImageFile ? "false" : "true");
+                    }
+                    else
+                    {
+                        writeImageFile = false;
+                        DBG_LOG("[f: %04d] MD5 %s : ref-not-found\n", frameNo, curMD5.text().c_str());
+                    }
                 }
-                else // use classic weird name
+                else
                 {
-                    ss << mOptions.mSnapshotPrefix << std::setw(10) << std::setfill('0') << callNo << "_c" << attachmentIndex << ".png";
-                }
-                filenameToBeUsed = ss.str();
-            }
-
-            if (src->writePNG(filenameToBeUsed.c_str()))
-            {
-                DBG_LOG("Snapshot (frame %d, call %d) : %s\n", frameNo, callNo, filenameToBeUsed.c_str());
-
-                // Register the snapshot to be uploaded
-                if (mOptions.mUploadSnapshots)
-                {
-                    mSnapshotPaths.push_back(filenameToBeUsed);
+                    DBG_LOG("[f: %04d] MD5 %s\n", frameNo, curMD5.text().c_str());
                 }
             }
-            else
+
+            if (writeImageFile)
             {
-                DBG_LOG("Failed to write snapshot : %s\n", filenameToBeUsed.c_str());
+                std::string filenameToBeUsed;
+                if (filename)
+                {
+                    filenameToBeUsed = filename;
+                }
+                else // no incoming filename, we must generate one
+                {
+                    int attachmentIndex = colorAttachment - GL_COLOR_ATTACHMENT0;
+                    bool validAttachmentIndex = attachmentIndex >= 0 && attachmentIndex < maxAttachments;
+                    if (!validAttachmentIndex)
+                    {
+                        attachmentIndex = 0;
+                    }
+
+                    std::stringstream ss;
+                    if (mOptions.mSnapshotFrameNames || mOptions.mLoopTimes > 0 || mOptions.mLoopSeconds > 0)
+                    {
+                        ss << mOptions.mSnapshotPrefix << std::setw(4) << std::setfill('0') << frameNo << "_l" << mLoopTimes << ".png";
+                    }
+                    else // use classic weird name
+                    {
+                        ss << mOptions.mSnapshotPrefix << std::setw(10) << std::setfill('0') << callNo << "_c" << attachmentIndex << ".png";
+                    }
+                    filenameToBeUsed = ss.str();
+                }
+
+                if (src->writePNG(filenameToBeUsed.c_str()))
+                {
+                    DBG_LOG("Snapshot (frame %d, call %d) : %s\n", frameNo, callNo, filenameToBeUsed.c_str());
+
+                    // Register the snapshot to be uploaded
+                    if (mOptions.mUploadSnapshots)
+                    {
+                        mSnapshotPaths.push_back(filenameToBeUsed);
+                    }
+                }
+                else
+                {
+                    DBG_LOG("Failed to write snapshot : %s\n", filenameToBeUsed.c_str());
+                }
             }
 
             delete src;
@@ -1282,6 +1413,13 @@ void Retracer::RetraceThread(const int threadidx, const int our_tid)
                 mLoopResults.push_back(fps);
                 mLoopBeginTime = os::getTime();
                 mLoopTimes++;
+
+                if (mSequenceObj) {
+                    // Initialize record entry for next run.
+                    mSequenceObj->record_array[mLoopTimes] = std::unique_ptr<retracer::io::SequenceT>(new retracer::io::SequenceT());
+                    mSequenceObj->record_array[mLoopTimes]->exit_frame = 0;
+                    mSequenceObj->record_array[mLoopTimes]->frame_md5_array.resize(mSequenceObj->frame_count);
+                }
             }
         }
         else if (mOptions.mSnapshotCallSet && (mOptions.mSnapshotCallSet->contains(curCallNo, mFile.ExIdToName(mCurCall.funcId))))
@@ -1591,6 +1729,22 @@ void Retracer::saveResult(Json::Value& result)
     result["end_time_boot"] = ((double)endTimeBoot) / os::timeFrequency;
     result["patrace_version"] = PATRACE_VERSION;
     if (mOptions.mPerfmon) perfmon_end(result);
+
+    // Write snap-sequence object.
+    if (mSequenceObj) {
+        mSequenceObj->patrace_version = result["patrace_version"].asString();
+        mSequenceObj->android_release = result["android_release"].asString();
+        mSequenceObj->android_version = result["android_version"].asUInt();
+        mSequenceObj->phone_model = result["phone_model"].asString();
+        mSequenceObj->phone_manufacturer = result["phone_manufacturer"].asString();
+
+        flatbuffers::FlatBufferBuilder fbb;
+        fbb.Finish(retracer::io::SnapSequence::Pack(fbb, mSequenceObj.get()));
+
+        mSequenceFile.seekp(std::fstream::beg);
+        mSequenceFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), fbb.GetSize());
+        mSequenceFile.flush();
+    }
 
     if (mCollectors)
     {

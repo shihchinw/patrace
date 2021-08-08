@@ -1,0 +1,31 @@
+namespace retracer.io;
+
+struct MD5Digest {
+    digest:[ubyte:16];
+}
+
+table Sequence {
+    exit_frame:uint;
+    frame_md5_array:[MD5Digest];
+}
+
+table SnapSequence {
+    magic:ushort = 7777;
+
+    timestamp:string;
+    trace_name:string;
+    patrace_version:string;
+    android_release:string;
+    android_version:ubyte;
+    phone_model:string;
+    phone_manufacturer:string;
+
+    frame_count:uint;
+    start_frame:uint;
+    end_frame:uint;
+    loop_count:ushort;
+
+    record_array:[Sequence];
+}
+
+root_type SnapSequence;
