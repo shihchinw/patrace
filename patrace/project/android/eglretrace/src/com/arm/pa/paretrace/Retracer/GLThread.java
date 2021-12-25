@@ -287,6 +287,7 @@ public class GLThread extends Thread {
                     js.put("cpumask", parentIntent.getStringExtra("cpumask"));
                 }
                 js.put("drawlog", parentIntent.getBooleanExtra("drawlog", false));
+                js.put("annotateTags", parentIntent.getBooleanExtra("annotateTags", false));
                 if (parentIntent.hasExtra("multithread")) {
                     js.put("multithread", parentIntent.getBooleanExtra("multithread", false));
                 }

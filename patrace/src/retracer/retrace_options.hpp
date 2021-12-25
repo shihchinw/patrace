@@ -56,6 +56,7 @@ struct RetraceOptions
     bool                mFailOnShaderError = false;
     int                 mDebug = 0;
     bool                mStateLogging = false;
+    bool                mAnnotateTags = false;
 
     EglConfigInfo mOnscreenConfig;
     EglConfigInfo mOffscreenConfig;

@@ -116,6 +116,7 @@ public class SelectActivity extends Activity
         mTraceOptionNames.put("Remove Unused Attributes", "removeUnusedAttributes");
         mTraceOptionNames.put("Debug", "debug");
         mTraceOptionNames.put("Draw log", "drawlog");
+        mTraceOptionNames.put("Annotate Tags", "annotateTags");
 
     	mTraceOptionValues = new LinkedHashMap<String, Boolean>();
     	mTraceOptionValues.put("forceOffscreen", false);
@@ -128,6 +129,7 @@ public class SelectActivity extends Activity
         mTraceOptionValues.put("removeUnusedAttributes", false);
         mTraceOptionValues.put("debug", false);
         mTraceOptionValues.put("drawlog", false);
+        mTraceOptionValues.put("annotateTags", false);
     }
 
     private void setupTraceList(){

@@ -9,6 +9,7 @@
 #include "retracer/forceoffscreen/offscrmgr.h"
 #include "retracer/glws.hpp"
 #include "retracer/config.hpp"
+#include "retracer/streamline_annotate.h"
 
 #include "libcollector/interface.hpp"
 
@@ -498,6 +499,10 @@ bool Retracer::OpenTraceFile(const char* filename)
     }
 
     initializeCallCounter();
+
+    if (mOptions.mAnnotateTags) {
+        ANNOTATE_SETUP;
+    }
 
     return true;
 }
@@ -1356,6 +1361,11 @@ void Retracer::RetraceThread(const int threadidx, const int our_tid)
             if (isSwapBuffers && (mCurCall.tid == mOptions.mRetraceTid || mOptions.mMultiThread))
             {
                 if (mOptions.mPerfmon) perfmon_frame();
+                if (mOptions.mAnnotateTags) {
+                    std::stringstream ss;
+                    ss << "SwapBuffers " << mCurFrameNo;
+                    ANNOTATE_MARKER_STR(ss.str().c_str());
+                }
             }
             r.swaps += (int)isSwapBuffers;
         }

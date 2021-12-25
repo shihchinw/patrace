@@ -207,6 +207,7 @@ void TraceExecutor::overrideDefaultsWithJson(Json::Value &value)
     {
         DBG_LOG("Debug mode enabled.\n");
     }
+    options.mAnnotateTags = value.get("annotateTags", false).asBool();
     options.mStoreProgramInformation = value.get("storeProgramInformation", false).asBool();
     options.mRemoveUnusedVertexAttributes = value.get("removeUnusedVertexAttributes", false).asBool();
 
