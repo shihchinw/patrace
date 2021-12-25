@@ -4,6 +4,8 @@
 #include <vector>
 #include "retracer/eglconfiginfo.hpp"
 #include "common/trace_callset.hpp"
+#include "jsoncpp/include/json/writer.h"
+#include "jsoncpp/include/json/reader.h"
 
 namespace retracer
 {
@@ -85,6 +87,8 @@ struct RetraceOptions
     bool                mPbufferRendering = false;
     int                 mSingleSurface = -1;
 
+    int                 mForceVRS = -1;
+
     bool                mFlushWork = false;
 
     int                 mPerfStart = -1;
@@ -93,6 +97,7 @@ struct RetraceOptions
 
     bool                mFinishBeforeSwap = false;
     bool                mPerfmon = false;
+    int                 mOverrideMSAA = -1;
 
     std::vector<unsigned int> mLinkErrorWhiteListCallNum;
 #if __ANDROID__
@@ -109,6 +114,9 @@ struct RetraceOptions
 
     std::string         mShaderCacheFile;
     bool                mShaderCacheRequired = false;
+
+    bool                mCollectorEnabled = false;
+    Json::Value         mCollectorValue;
 private:
     // Noncopyable because of owned CallSet pointer members
     RetraceOptions(const RetraceOptions&);

@@ -1009,12 +1009,16 @@ gles_functions = [
     # (GLES extension does not support client-side buffers)
     GlFunction(Void, "glMultiDrawArraysIndirectEXT", [(GLenum_mode, "mode"), (GLpointerConst, "indirect"), (GLsizei, "drawcount"), (GLsizei, "stride")]),
     GlFunction(Void, "glMultiDrawElementsIndirectEXT", [(GLenum_mode, "mode"), (GLenum, "type"), (GLpointerConst, "indirect"), (GLsizei, "drawcount"), (GLsizei, "stride")]),
+
     # ARM_texture_storage_compression
     GlFunction(Void, "glTexStorageAttribs2DARM", [(GLenum, "target"), (GLsizei, "levels"), (GLenum, "internalformat"), (GLsizei, "width"), (GLsizei, "height"), (GLAttribList, "attrib_list")]),
     GlFunction(Void, "glTexStorageAttribs3DARM", [(GLenum, "target"), (GLsizei, "levels"), (GLenum, "internalformat"), (GLsizei, "width"), (GLsizei, "height"), (GLsizei, "depth"), (GLAttribList, "attrib_list")]),
 
     # GL_EXT_external_buffer
     GlFunction(Void, "glBufferStorageExternalEXT", [(GLenum, "target"), (GLintptr, "offset"), (GLsizeiptr, "size"), (OpaquePointer(Void), "clientBuffer"), (GLbitfield, "flags")]),
+
+    # QCOM_shading_rate
+    GlFunction(Void, "glShadingRateQCOM", [(GLenum, "rate")]),
 ]
 
 glesapi = API('GLES')

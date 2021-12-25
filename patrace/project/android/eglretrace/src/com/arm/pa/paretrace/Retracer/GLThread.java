@@ -420,8 +420,6 @@ public class GLThread extends Thread {
         }
         catch (Exception e) {}
 
-        NativeAPI.setSurface(null, 0);
-
         JSONObject battery_after = batterydata();
         JSONObject js = getdata();
         try {
