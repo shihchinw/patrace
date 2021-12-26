@@ -27,9 +27,10 @@ This branch contains few modifications to build eglretracer from Android Studio 
     ```
     python ./scripts/build.py patrace android release
     ```
-7. Open **<repo_root>\patrace\project\android\eglretrace** in Android Studio
-8. Click **Sync Project with Gradle Files** to sync your project.
-9. Click **Build > Make Project**
+7. Launch Android Studio from terminal shell (ensure we have identical config of environment variables for auto source file generation.)
+8. Open **<repo_root>\patrace\project\android\eglretrace** in Android Studio
+9. Click **Sync Project with Gradle Files** to sync your project.
+10. Click **Build > Make Project**
 
 
 Caveats
