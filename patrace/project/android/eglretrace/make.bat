@@ -6,6 +6,7 @@ del ..\..\..\src\dispatch\eglproc_auto.cpp
 del ..\..\..\src\helper\paramsize.cpp
 del ..\..\..\src\retracer\retrace_gles_auto.cpp
 del ..\..\..\src\specs\khronos_enums.hpp
+del ..\..\..\src\specs\pa_func_to_version.cpp
 
 echo Auto-generate the retrace code...
 pushd ..\..\..\src\common && python api_info.py && popd
@@ -14,6 +15,7 @@ pushd ..\..\..\src\dispatch && python eglproc.py && popd
 pushd ..\..\..\src\helper && python paramsize.py && popd
 pushd ..\..\..\src\retracer && python retrace.py && popd
 pushd ..\..\..\src\specs\ && python glxml_header.py && popd
+pushd ..\..\..\src\specs\ && python glxml_to_extensions.py && popd
 pushd ..\..\..\src\tracer && python trace.py && popd
 
 echo Generate C header for NativeAPI.java
